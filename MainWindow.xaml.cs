@@ -8,6 +8,9 @@ namespace EVEAutoInvite
     /// </summary>
     public partial class MainWindow : Window
     {
+        private HelpWindow _helpWindow;
+
+
         public MainWindow()
         {
             InitializeComponent();
@@ -56,7 +59,19 @@ namespace EVEAutoInvite
 
         private async void Help_Click(object sender, RoutedEventArgs e)
         {
-            // Display Help Popup (disable calling window)
+            if (_helpWindow == null || !_helpWindow.IsVisible)
+            {
+                _helpWindow = new HelpWindow
+                {
+                    Owner = this
+                };
+                _helpWindow.Closed += (s, args) => _helpWindow = null;
+                _helpWindow.Show();
+            }
+            else
+            {
+                _helpWindow.Focus();
+            }
         }
 
         private async void CharSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
