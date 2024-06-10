@@ -97,7 +97,7 @@ namespace EVEAutoInvite {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://login.eveonline.com/v2/oauth/token/&quot;.
+        ///   Looks up a localized string similar to https://login.eveonline.com/v2/oauth/token/.
         /// </summary>
         internal static string EndpointOAuthToken {
             get {
@@ -111,6 +111,15 @@ namespace EVEAutoInvite {
         internal static string EndpointOAuthVerify {
             get {
                 return ResourceManager.GetString("EndpointOAuthVerify", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to esi-fleets.read_fleet.v1 esi-fleets.write_fleet.v1.
+        /// </summary>
+        internal static string ESIScopes {
+            get {
+                return ResourceManager.GetString("ESIScopes", resourceCulture);
             }
         }
         

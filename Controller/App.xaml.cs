@@ -10,16 +10,14 @@ namespace EVEAutoInvite
 {
     public partial class App : Application
     {
-        public ESIAuthManager AuthManager { get; private set; }
-
+        public static ESIAuthManager AuthManager { get; private set; }
 
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
-            AuthManager = new ESIAuthManager();
+            AuthManager = ESIAuthManager.GetAuthManager();
             AuthManager.LoadCharacters();
-
 
             // Create and show the main window
             MainWindow = new MainWindow();

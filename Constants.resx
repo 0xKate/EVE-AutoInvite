@@ -130,10 +130,13 @@
     <value>https://login.eveonline.com/v2/oauth/authorize/</value>
   </data>
   <data name="EndpointOAuthToken" xml:space="preserve">
-    <value>https://login.eveonline.com/v2/oauth/token/"</value>
+    <value>https://login.eveonline.com/v2/oauth/token/</value>
   </data>
   <data name="EndpointOAuthVerify" xml:space="preserve">
     <value>https://login.eveonline.com/oauth/verify</value>
+  </data>
+  <data name="ESIScopes" xml:space="preserve">
+    <value>esi-fleets.read_fleet.v1 esi-fleets.write_fleet.v1</value>
   </data>
   <data name="UserAgent" xml:space="preserve">
     <value>EVE-AUTOINVITE</value>

@@ -9,45 +9,68 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Runtime.Serialization.Json;
 using System.Security.Cryptography;
+using System.Security.Permissions;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Windows;
-
+using System.Windows.Media.TextFormatting;
+using System.Windows.Navigation;
 
 namespace EVEAutoInvite
 {
     public class ESIAuthManager
     {
+        public HttpClient HttpClient { get; set; }
         public ObservableCollection<ESIAuthenticatedCharacter> Characters { get; private set; }
-
-        private HttpClient HttpClient { get; set; }
-        private ESIAuthenticatedCharacter ActiveCharacter;
-
+        public ESIAuthenticatedCharacter? ActiveCharacter { get; private set; }
+        public static ESIAuthManager Current { get; set; }
+        public static ESIAuthManager GetAuthManager()
+        {
+            if (Current == null)
+                Current = new ESIAuthManager();
+            return Current;
+        }       
         public ESIAuthManager()
         {
             this.HttpClient = new HttpClient();
-            this.HttpClient.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.AuthBackupFile);            
-        }
-
+            this.Characters = new ObservableCollection<ESIAuthenticatedCharacter>();
+            this.HttpClient.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.AuthBackupFile);
+        }        
         public void SetAuthToken(ESIAuthToken token)
         {
             this.HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
         }
-
+        public void SetActiveCharacter(string characterName)
+        {
+            foreach (var character in this.Characters)
+            {
+                if (character.CharacterInfo.CharacterName == characterName)
+                {
+                    this.ActiveCharacter = character;
+                    break;
+                }
+            }
+        }
         public void SetActiveCharacter(ESIAuthenticatedCharacter character)
         {
             this.ActiveCharacter = character;
         }
-
         public async Task<HttpResponseMessage> ESIAuthenticatedRequest(string url, ESIAuthToken authToken)
         {
-            this.SetAuthToken(authToken);
-            var response = await this.HttpClient.GetAsync(url);
-            response.EnsureSuccessStatusCode();
-            return response;
+            try
+            {
+                this.SetAuthToken(authToken);
+                var response = await this.HttpClient.GetAsync(url);
+                response.EnsureSuccessStatusCode();
+                return response;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"{ex.Message}\n\n{ex.StackTrace}", "Error during SSO Auth!", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            return null;
         }
-
         public bool LoadCharacters()
         {
             if (File.Exists(Constants.AuthBackupFile))
@@ -59,12 +82,15 @@ namespace EVEAutoInvite
                         DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(ObservableCollection<ESIAuthenticatedCharacter>));
                         this.Characters = (ObservableCollection<ESIAuthenticatedCharacter>) serializer.ReadObject(fileStream);
 
-                        foreach (var character in this.Characters)
+                        if (this.ActiveCharacter == null)
                         {
-                            if (character.Active)
+                            foreach (var character in this.Characters)
                             {
-                                this.ActiveCharacter = character;
-                                break;
+                                if (character.Active)
+                                {
+                                    this.ActiveCharacter = character;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -72,12 +98,11 @@ namespace EVEAutoInvite
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show(ex.Message, "LoadCharacters() Error: ", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"{ex.Message}\n\n{ex.StackTrace}", "Error during LoadCharacters!", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
             return false;
         }
-
         public void SaveCharacters()
         {
             if (this.Characters.Count > 0)
@@ -93,11 +118,36 @@ namespace EVEAutoInvite
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show(ex.Message, "SaveCharacters() Error: ", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"{ex.Message}\n\n{ex.StackTrace}", "Error during SaveCharacters!", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
+        public bool TryGetCharacter(string characterName, out ESIAuthenticatedCharacter? character, out int? index)
+        {
+            character = null;
+            index = null;
 
+            for (int i = 0; i < this.Characters.Count; i++)
+            {
+                var c = this.Characters[i];
+                if (c.CharacterInfo.CharacterName == characterName)
+                {
+                    character = this.Characters[i];
+                    index = i;
+                    return true;
+                }
+            }
+            return false;            
+        }
+        public bool UpdateCharacter(ESIAuthenticatedCharacter newCharacter)
+        {
+            if (this.TryGetCharacter(newCharacter.CharacterInfo.CharacterName, out ESIAuthenticatedCharacter? _, out int? i))
+            {
+                this.Characters[i.Value] = newCharacter;
+                return true;
+            }
+            return false;
+        }
         public static void OpenWebBrowser(string url)
         {
             Process.Start(new ProcessStartInfo
@@ -106,14 +156,12 @@ namespace EVEAutoInvite
                 UseShellExecute = true
             });
         }
-
         public static string Base64UrlEncode(byte[] input)
         {
             string base64 = Convert.ToBase64String(input);
             string base64Url = base64.Replace('+', '-').Replace('/', '_').TrimEnd('=');
             return base64Url;
         }
-
         public static ESIAuthChallenge GenerateNewAuthChallenge()
         {
             string codeVerifier;
@@ -140,7 +188,6 @@ namespace EVEAutoInvite
                 RequestState = Guid.NewGuid().ToString()
             };
         }
-
         public async Task<ESIAuthenticatedCharacter?> RequestNewSSOAuth()
         {
             ESIAuthChallenge esiAuthChallenge = GenerateNewAuthChallenge();
@@ -154,7 +201,7 @@ namespace EVEAutoInvite
                     ResponseType = "code",
                     RedirectURI = HttpUtility.UrlEncode(Constants.EndpointCallbackURL),
                     ClientID = Constants.ClientID,
-                    Scope = HttpUtility.UrlEncode("esi-fleets.read_fleet.v1,esi-fleets.write_fleet.v1"),
+                    Scope = HttpUtility.UrlEncode(Constants.ESIScopes),
                     CodeChallenge = esiAuthChallenge.CodeChallenge,
                     CodeChallengeMethod = "S256",
                     RequestState = esiAuthChallenge.RequestState,
@@ -206,7 +253,7 @@ namespace EVEAutoInvite
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Error during SSO Auth!", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"{ex.Message}\n\n{ex.StackTrace}", "Error during SSO Auth!", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             return null;
         }

@@ -2,7 +2,13 @@
 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Accounts" Height="350" Width="400"
-        DataContext="{Binding RelativeSource={RelativeSource Self}}">
+        xmlns:local="clr-namespace:EVEAutoInvite"
+        Closing="OnClose">
+
+    <Window.DataContext>
+        <Binding Source="{x:Static local:App.AuthManager}" />
+    </Window.DataContext>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
@@ -11,8 +17,8 @@ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 
         <DataGrid x:Name="AccountsDataGrid" ItemsSource="{Binding Characters}" AutoGenerateColumns="False" Grid.Row="0" Margin="10">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Character Name" Binding="{Binding CharacterName}" />
-                <DataGridTextColumn Header="Token Expiration Date" Binding="{Binding TokenExpirationDate}" />
+                <DataGridTextColumn Header="Character Name" Binding="{Binding CharacterInfo.CharacterName}" />
+                <DataGridTextColumn Header="Token Lifetime" Binding="{Binding AuthToken.ExpiresIn}" />
             </DataGrid.Columns>
         </DataGrid>
 
