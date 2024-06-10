@@ -1,10 +1,9 @@
-﻿using System;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 
 namespace EVEAutoInvite
 {
     [DataContract]
-    public struct ESIAuthToken
+    public struct ESIAuthTokenResponse
     {
         [DataMember(Name = "access_token")]
         public string AccessToken { get; set; }
@@ -17,18 +16,5 @@ namespace EVEAutoInvite
 
         [DataMember(Name = "refresh_token")]
         public string RefreshToken { get; set; }
-
-        public DateTime ExpirationDate { get; set; }
-
-        public bool Validate()
-        {
-            if (ExpiresIn <= 0)
-                return false;
-
-            if (ExpirationDate < DateTime.Now)
-                return false;
-
-            return true;
-        }
     }
 }

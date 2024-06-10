@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace EVEAutoInvite.Model
+﻿namespace EVEAutoInvite
 {
     public struct ESIAuthRequestPayload
     {
@@ -16,9 +10,9 @@ namespace EVEAutoInvite.Model
         public string CodeChallengeMethod { get; set; }
         public string RequestState { get; set; } // aka. state
 
-        public string BuildURL(string endpoint)
+        public string BuildURL()
         {
-            return $"{endpoint}?response_type={this.ResponseType}&redirect_uri={this.RedirectURI}&client_id={this.ClientID}&scope={this.Scope}&code_challenge={this.CodeChallenge}&code_challenge_method={this.CodeChallengeMethod}&state={this.RequestState}";
+            return $"{Constants.EndpointOAuthAuthorize}?response_type={this.ResponseType}&redirect_uri={this.RedirectURI}&client_id={this.ClientID}&scope={this.Scope}&code_challenge={this.CodeChallenge}&code_challenge_method={this.CodeChallengeMethod}&state={this.RequestState}";
         }
     }
 }
