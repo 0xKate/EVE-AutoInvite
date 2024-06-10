@@ -36,7 +36,7 @@ namespace EVEAutoInvite
         {
             this.HttpClient = new HttpClient();
             this.Characters = new ObservableCollection<ESIAuthenticatedCharacter>();
-            this.HttpClient.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.AuthBackupFile);
+            this.HttpClient.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.UserAgent);
         }
         public void SetAuthToken(ESIAuthToken token)
         {
