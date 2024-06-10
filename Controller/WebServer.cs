@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace EVEAutoInvite
@@ -15,31 +16,53 @@ namespace EVEAutoInvite
             _listener.Prefixes.Add(listenerPrefix);
         }
 
-        public async Task<HttpListenerRequest> StartAsync()
+        public async Task<HttpListenerRequest> StartAsync(CancellationToken cancellationToken = default)
         {
             _listener.Start();
 
             try
             {
-                // Await the next incoming HTTP request asynchronously
-                HttpListenerContext context = await _listener.GetContextAsync();
+                var contextTask = _listener.GetContextAsync();
+                var cancelTask = new TaskCompletionSource<bool>();
 
-                // Prepare the response content
-                string responseString = $"<html><body><h1>EVE-AutoFleet</h1><br><h3>You may close this tab.</h3></body></html>";
-                byte[] responseBytes = Encoding.UTF8.GetBytes(responseString);
+                using (cancellationToken.Register(() => cancelTask.SetResult(true)))
+                {
+                    if (contextTask == await Task.WhenAny(contextTask, cancelTask.Task))
+                    {
+                        if (contextTask.IsCompleted)
+                        {
+                            HttpListenerContext context = contextTask.Result;
 
-                // Set the response headers
-                context.Response.StatusCode = (int)HttpStatusCode.OK;
-                context.Response.ContentType = "text/html";
-                context.Response.ContentLength64 = responseBytes.Length;
+                            // Prepare the response content
+                            string responseString = $"<html><body><h1>EVE-AutoFleet</h1><br><h3>You may close this tab.</h3></body></html>";
+                            byte[] responseBytes = Encoding.UTF8.GetBytes(responseString);
 
-                // Write the response data to the output stream asynchronously
-                await context.Response.OutputStream.WriteAsync(responseBytes, 0, responseBytes.Length);
+                            // Set the response headers
+                            context.Response.StatusCode = (int)HttpStatusCode.OK;
+                            context.Response.ContentType = "text/html";
+                            context.Response.ContentLength64 = responseBytes.Length;
 
-                // Close the output stream
-                context.Response.Close();
+                            // Write the response data to the output stream asynchronously
+                            await context.Response.OutputStream.WriteAsync(responseBytes, 0, responseBytes.Length);
 
-                return context.Request;
+                            // Close the output stream
+                            context.Response.Close();
+
+                            return context.Request;
+                        }
+                    }
+                    else
+                    {
+                        _listener.Stop();
+                        throw new OperationCanceledException(cancellationToken);
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Handle the cancellation exception if needed
+                Console.WriteLine("Operation was canceled.");
+                throw;
             }
             catch (Exception ex)
             {
@@ -52,6 +75,8 @@ namespace EVEAutoInvite
                 _listener.Stop();
                 _listener.Close();
             }
+
+            throw new OperationCanceledException(cancellationToken);
         }
     }
 }

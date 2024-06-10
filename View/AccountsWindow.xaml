@@ -19,6 +19,13 @@ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Character Name" Binding="{Binding CharacterInfo.CharacterName}" />
                 <DataGridTextColumn Header="Token Lifetime" Binding="{Binding AuthToken.ExpiresIn}" />
+                <DataGridTemplateColumn Header="Action">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="Delete" Click="DeleteButton_Click"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
 

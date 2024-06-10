@@ -11,6 +11,7 @@ using System.Runtime.Serialization.Json;
 using System.Security.Cryptography;
 using System.Security.Permissions;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Windows;
@@ -30,13 +31,13 @@ namespace EVEAutoInvite
             if (Current == null)
                 Current = new ESIAuthManager();
             return Current;
-        }       
+        }
         public ESIAuthManager()
         {
             this.HttpClient = new HttpClient();
             this.Characters = new ObservableCollection<ESIAuthenticatedCharacter>();
             this.HttpClient.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.AuthBackupFile);
-        }        
+        }
         public void SetAuthToken(ESIAuthToken token)
         {
             this.HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
@@ -56,22 +57,32 @@ namespace EVEAutoInvite
         {
             this.ActiveCharacter = character;
         }
-        public async Task<HttpResponseMessage> ESIAuthenticatedRequest(string url, ESIAuthToken authToken)
+
+        public async Task<HttpResponseMessage> ESIAuthenticatedRequest(string url, ESIAuthToken authToken, CancellationToken cancellationToken = default)
         {
             try
             {
                 this.SetAuthToken(authToken);
-                var response = await this.HttpClient.GetAsync(url);
+                var response = await this.HttpClient.GetAsync(url, cancellationToken);
                 response.EnsureSuccessStatusCode();
                 return response;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"{ex.Message}\n\n{ex.StackTrace}", "Error during SSO Auth!", MessageBoxButton.OK, MessageBoxImage.Error);
+                if (ex is OperationCanceledException)
+                {
+                    MessageBox.Show("Operation was canceled.", "Request Canceled", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show($"{ex.Message}\n\n{ex.StackTrace}", "Error during SSO Auth!", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
             return null;
         }
-        public bool LoadCharacters()
+
+
+    public bool LoadCharacters()
         {
             if (File.Exists(Constants.AuthBackupFile))
             {
@@ -80,7 +91,7 @@ namespace EVEAutoInvite
                     using (FileStream fileStream = new FileStream(Constants.AuthBackupFile, FileMode.Open))
                     {
                         DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(ObservableCollection<ESIAuthenticatedCharacter>));
-                        this.Characters = (ObservableCollection<ESIAuthenticatedCharacter>) serializer.ReadObject(fileStream);
+                        this.Characters = (ObservableCollection<ESIAuthenticatedCharacter>)serializer.ReadObject(fileStream);
 
                         if (this.ActiveCharacter == null)
                         {
@@ -137,7 +148,7 @@ namespace EVEAutoInvite
                     return true;
                 }
             }
-            return false;            
+            return false;
         }
         public bool UpdateCharacter(ESIAuthenticatedCharacter newCharacter)
         {
@@ -188,7 +199,7 @@ namespace EVEAutoInvite
                 RequestState = Guid.NewGuid().ToString()
             };
         }
-        public async Task<ESIAuthenticatedCharacter?> RequestNewSSOAuth()
+        public async Task<ESIAuthenticatedCharacter?> RequestNewSSOAuth(CancellationToken cancellationToken = default)
         {
             ESIAuthChallenge esiAuthChallenge = GenerateNewAuthChallenge();
             ESICharacterInfo esiCharacterInfo;
@@ -208,10 +219,11 @@ namespace EVEAutoInvite
                 };
 
                 var server = new WebServer(Constants.EndpointCallbackURL);
-                Task<HttpListenerRequest> listenerTask = server.StartAsync();
+                Task<HttpListenerRequest> listenerTask = server.StartAsync(cancellationToken);
                 OpenWebBrowser(requestPayload.BuildURL());
 
-                HttpListenerRequest request = await listenerTask;
+                HttpListenerRequest request = await listenerTask.WithCancellation(cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
                 NameValueCollection queryParameters = HttpUtility.ParseQueryString(request.Url.Query);
 
                 var code = queryParameters.Get("code");
@@ -228,17 +240,17 @@ namespace EVEAutoInvite
                     };
 
                     FormUrlEncodedContent content = new FormUrlEncodedContent(payload);
-                    HttpResponseMessage authTokenRaw = await this.HttpClient.PostAsync(Constants.EndpointOAuthToken, content);
+                    HttpResponseMessage authTokenRaw = await this.HttpClient.PostAsync(Constants.EndpointOAuthToken, content, cancellationToken);
 
                     authTokenRaw.EnsureSuccessStatusCode();
-                    using (var stream = await authTokenRaw.Content.ReadAsStreamAsync())
+                    using (var stream = await authTokenRaw.Content.ReadAsStreamAsync().WithCancellation(cancellationToken))
                     {
                         DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(ESIAuthToken));
                         esiAuthToken = (ESIAuthToken)serializer.ReadObject(stream);
                     }
 
-                    var characterInfoRaw = await ESIAuthenticatedRequest(Constants.EndpointOAuthVerify, esiAuthToken);
-                    using (var stream = await characterInfoRaw.Content.ReadAsStreamAsync())
+                    var characterInfoRaw = await ESIAuthenticatedRequest(Constants.EndpointOAuthVerify, esiAuthToken, cancellationToken);
+                    using (var stream = await characterInfoRaw.Content.ReadAsStreamAsync().WithCancellation(cancellationToken))
                     {
                         DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(ESICharacterInfo));
                         esiCharacterInfo = (ESICharacterInfo)serializer.ReadObject(stream);
@@ -253,9 +265,34 @@ namespace EVEAutoInvite
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"{ex.Message}\n\n{ex.StackTrace}", "Error during SSO Auth!", MessageBoxButton.OK, MessageBoxImage.Error);
+                if (ex is OperationCanceledException)
+                {
+                    MessageBox.Show("Operation was canceled.", "SSO Auth Canceled", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show($"{ex.Message}\n\n{ex.StackTrace}", "Error during SSO Auth!", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
             return null;
         }
     }
+
+
+    public static class TaskExtensions
+    {
+        public static async Task<T> WithCancellation<T>(this Task<T> task, CancellationToken cancellationToken)
+        {
+            var tcs = new TaskCompletionSource<bool>();
+            using (cancellationToken.Register(s => ((TaskCompletionSource<bool>)s).TrySetResult(true), tcs))
+            {
+                if (task != await Task.WhenAny(task, tcs.Task))
+                {
+                    throw new OperationCanceledException(cancellationToken);
+                }
+            }
+            return await task;
+        }
+    }
+
 }

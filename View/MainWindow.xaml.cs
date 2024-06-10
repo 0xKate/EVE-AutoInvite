@@ -57,7 +57,8 @@ namespace EVEAutoInvite
                     Owner = this,
                     WindowStartupLocation = WindowStartupLocation.CenterOwner
                 };
-                _accountsWindow.Closed += (s, args) => _accountsWindow = null;
+                _accountsWindow.Closed += (s, args) => { _accountsWindow = null; this.IsEnabled = true; };    
+                this.IsEnabled = false;
                 _accountsWindow.Show();
             }
             else
