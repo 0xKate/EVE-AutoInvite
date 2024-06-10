@@ -5,7 +5,7 @@ namespace EVEAutoInvite
     public partial class App : Application
     {
 
-        protected override async void OnStartup(StartupEventArgs e)
+        protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
@@ -14,7 +14,7 @@ namespace EVEAutoInvite
             MainWindow.Show();
         }
 
-        protected override async void OnExit(ExitEventArgs e)
+        protected override void OnExit(ExitEventArgs e)
         {
             base.OnExit(e);
         }

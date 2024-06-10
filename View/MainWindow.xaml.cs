@@ -9,6 +9,7 @@ namespace EVEAutoInvite
     public partial class MainWindow : Window
     {
         private HelpWindow _helpWindow;
+        private AccountsWindow _accountsWindow;
 
 
         public MainWindow()
@@ -47,23 +48,32 @@ namespace EVEAutoInvite
 
         }
 
-        private async void Accounts_Click(object sender, RoutedEventArgs e)
+        private void Accounts_Click(object sender, RoutedEventArgs e)
         {
-            // Display the account auth window
+            if (_accountsWindow == null || !_accountsWindow.IsVisible)
+            {
+                _accountsWindow = new AccountsWindow
+                {
+                    Owner = this,
+                    WindowStartupLocation = WindowStartupLocation.CenterOwner
+                };
+                _accountsWindow.Closed += (s, args) => _accountsWindow = null;
+                _accountsWindow.Show();
+            }
+            else
+            {
+                _accountsWindow.Focus();
+            }
         }
 
-        private async void Exit_Click(object sender, RoutedEventArgs e)
-        {
-            // Exit the app
-        }
-
-        private async void Help_Click(object sender, RoutedEventArgs e)
+        private void Help_Click(object sender, RoutedEventArgs e)
         {
             if (_helpWindow == null || !_helpWindow.IsVisible)
             {
                 _helpWindow = new HelpWindow
                 {
-                    Owner = this
+                    Owner = this,
+                    WindowStartupLocation = WindowStartupLocation.CenterOwner
                 };
                 _helpWindow.Closed += (s, args) => _helpWindow = null;
                 _helpWindow.Show();
@@ -74,26 +84,31 @@ namespace EVEAutoInvite
             }
         }
 
-        private async void CharSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void Exit_Click(object sender, RoutedEventArgs e)
+        {
+            Application.Current.Shutdown();
+        }
+
+        private void CharSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             // When the character changes, we need to rebuild the Chat list with all logs
             // that have the new character as a listener
             // enable the chat selector if we found any
         }
 
-        private async void ChatSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void ChatSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             // When the selected chat changes, we need to create the log listener for the selected file
             // setup the event handler for when a new line is added
             // enable the start and stop buttons
         }
 
-        private async void Start_Click(object sender, RoutedEventArgs e)
+        private void Start_Click(object sender, RoutedEventArgs e)
         {
             // Enables all event handling
         }
 
-        private async void Stop_Click(object sender, RoutedEventArgs e)
+        private void Stop_Click(object sender, RoutedEventArgs e)
         {
             // disables all event handling
         }
