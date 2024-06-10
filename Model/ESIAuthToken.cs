@@ -18,6 +18,7 @@ namespace EVEAutoInvite
         [DataMember(Name = "refresh_token")]
         public string RefreshToken { get; set; }
 
+        [DataMember(Name = "expiration_date")]
         public DateTime ExpirationDate { get; set; }
 
         public bool Validate()
