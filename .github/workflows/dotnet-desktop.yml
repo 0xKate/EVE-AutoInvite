@@ -15,7 +15,9 @@ jobs:
 
       - name: Setup .NET Framework
         run: |
-          choco install dotnet4.8-sdk -y
+          # Download and install the .NET Framework 4.8 SDK
+          wget https://download.visualstudio.microsoft.com/download/pr/61670714-9a31-4f4f-ba16-fee52d81f7f0/f0ad32eef9a93bc0dcf889c7b5d0d956/ndp48-x86-x64-allos-enu.exe -OutFile dotnet-framework-installer.exe
+          Start-Process -Wait -FilePath dotnet-framework-installer.exe -ArgumentList "/quiet /norestart"
 
       - name: Restore dependencies and build
         run: |
