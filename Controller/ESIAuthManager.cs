@@ -36,7 +36,7 @@ namespace EVEAutoInvite
         {
             this.HttpClient = new HttpClient();
             this.Characters = new ObservableCollection<ESIAuthenticatedCharacter>();
-            this.HttpClient.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.AuthBackupFile);
+            this.HttpClient.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.UserAgent);
         }
         public void SetAuthToken(ESIAuthToken token)
         {
@@ -57,7 +57,6 @@ namespace EVEAutoInvite
         {
             this.ActiveCharacter = character;
         }
-
         public async Task<HttpResponseMessage> ESIAuthenticatedRequest(string url, ESIAuthToken authToken, CancellationToken cancellationToken = default)
         {
             try
@@ -80,9 +79,7 @@ namespace EVEAutoInvite
             }
             return null;
         }
-
-
-    public bool LoadCharacters()
+        public bool LoadCharacters()
         {
             if (File.Exists(Constants.AuthBackupFile))
             {
@@ -277,8 +274,6 @@ namespace EVEAutoInvite
             return null;
         }
     }
-
-
     public static class TaskExtensions
     {
         public static async Task<T> WithCancellation<T>(this Task<T> task, CancellationToken cancellationToken)

@@ -61,16 +61,6 @@ namespace EVEAutoInvite {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
-        /// </summary>
-        internal static System.Drawing.Icon _0x {
-            get {
-                object obj = ResourceManager.GetObject("_0x", resourceCulture);
-                return ((System.Drawing.Icon)(obj));
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to EvE-AutoInvite.
         /// </summary>
         internal static string AppName {
