@@ -33,10 +33,9 @@ jobs:
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          files: ''
+          tag_name: v${{ github.run_number }}
+          name: Release ${{ github.run_number }}
           body: |
             $(git log -1 --pretty=format:"%s%n%n%b")
-          tag_name: v${{ github.run_number }}
-          title: Release ${{ github.run_number }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
