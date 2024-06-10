@@ -13,19 +13,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Download .NET Framework Installer
-        uses: wei/wget@v1
-        with:
-          args: -O dotnet-framework-installer.exe "https://download.visualstudio.microsoft.com/download/pr/61670714-9a31-4f4f-ba16-fee52d81f7f0/f0ad32eef9a93bc0dcf889c7b5d0d956/ndp48-x86-x64-allos-enu.exe"
+      - name: Download .NET Framework SDK
+        run: |
+          Invoke-WebRequest -Uri "https://download.visualstudio.microsoft.com/download/pr/714a99a2-db28-432e-9a39-4345ba11e73f/5108686aec021898cec3de2cc4d9fd3c/ndp48-devpack-enu.exe" -OutFile "dotnet-framework-installer.exe"
 
-      - name: Run .NET Framework Installer
+      - name: Install .NET Framework SDK
         run: |
           Start-Process -Wait -FilePath "dotnet-framework-installer.exe" -ArgumentList "/quiet /norestart"
 
       - name: Restore dependencies and build
         run: |
-          nuget restore YourSolutionFile.sln
-          msbuild /p:Configuration=Release YourSolutionFile.sln
+          nuget restore EVE-AutoInvite.sln
+          msbuild /p:Configuration=Release EVE-AutoInvite.sln
 
       - name: Create release
         id: create_release
