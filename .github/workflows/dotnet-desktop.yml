@@ -21,10 +21,13 @@ jobs:
         run: |
           Start-Process -Wait -FilePath "dotnet-framework-installer.exe" -ArgumentList "/quiet /norestart"
 
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1
+
       - name: Restore dependencies and build
         run: |
           nuget restore EVE-AutoInvite.sln
-          msbuild /p:Configuration=Release EVE-AutoInvite.sln
+          msbuild.exe /p:Configuration=Release EVE-AutoInvite.sln
 
       - name: Create release
         id: create_release
