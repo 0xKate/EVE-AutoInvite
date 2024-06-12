@@ -29,6 +29,11 @@ jobs:
         run: |
           nuget restore EVE-AutoInvite.sln
           msbuild.exe /p:Configuration=Release EVE-AutoInvite.sln
+      
+      - name: Get commit message
+        id: commit_message
+        run: |
+          echo "::set-output name=message::$(git log --format=%B -n 1 HEAD)"
 
       - name: Create release
         id: create_release
@@ -38,7 +43,16 @@ jobs:
         with:
           tag_name: v${{ github.run_number }}
           release_name: Release ${{ github.run_number }}
-          body: |
-            $(git log -1 --pretty=format:"%s%n%n%b")
+          body: ${{ steps.commit_message.outputs.message }}
           draft: false
           prerelease: false
+
+      - name: Upload release asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: EVE-AutoInvite/EVEAutoInvite/bin/Release/EVEAutoInvite.exe
+          asset_name: EVEAutoInvite.exe
+          asset_content_type: application/octet-stream
