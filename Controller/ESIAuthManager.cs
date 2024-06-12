@@ -25,7 +25,6 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Runtime.Serialization.Json;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -88,23 +87,21 @@ namespace EVEAutoInvite
             {
                 try
                 {
-                    using (FileStream fileStream = new FileStream(Constants.AuthBackupFile, FileMode.Open))
-                    {
-                        DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(ObservableCollection<ESIAuthenticatedCharacter>));
-                        Characters = (ObservableCollection<ESIAuthenticatedCharacter>)serializer.ReadObject(fileStream);
+                    var characters = JsonHelper.DeserializeFromFile<ObservableCollection<ESIAuthenticatedCharacter>>(Constants.AuthBackupFile);
+                    Characters = characters;
 
-                        if (ActiveCharacter == null)
+                    if (ActiveCharacter == null)
+                    {
+                        foreach (var character in Characters)
                         {
-                            foreach (var character in Characters)
+                            if (character.Active)
                             {
-                                if (character.Active)
-                                {
-                                    ActiveCharacter = character;
-                                    break;
-                                }
+                                ActiveCharacter = character;
+                                break;
                             }
                         }
                     }
+
                     return true;
                 }
                 catch (Exception ex)
@@ -120,12 +117,7 @@ namespace EVEAutoInvite
             {
                 try
                 {
-                    using (MemoryStream stream = new MemoryStream())
-                    {
-                        DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(ObservableCollection<ESIAuthenticatedCharacter>));
-                        serializer.WriteObject(stream, Characters);
-                        File.WriteAllBytes(Constants.AuthBackupFile, stream.ToArray());
-                    }
+                    JsonHelper.SerializeToFile(Characters, Constants.AuthBackupFile);
                 }
                 catch (Exception ex)
                 {
@@ -167,12 +159,6 @@ namespace EVEAutoInvite
                 UseShellExecute = true
             });
         }
-        public static string Base64UrlEncode(byte[] input)
-        {
-            string base64 = Convert.ToBase64String(input);
-            string base64Url = base64.Replace('+', '-').Replace('/', '_').TrimEnd('=');
-            return base64Url;
-        }
         public static ESIAuthChallenge GenerateNewAuthChallenge()
         {
             string codeVerifier;
@@ -184,12 +170,12 @@ namespace EVEAutoInvite
                 rng.GetBytes(randomBytes);
             }
 
-            codeVerifier = Base64UrlEncode(randomBytes);
+            codeVerifier = JsonHelper.Base64UrlEncode(randomBytes);
 
             using (SHA256 sha256 = SHA256.Create())
             {
                 byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(codeVerifier));
-                codeChallenge = Base64UrlEncode(hashBytes);
+                codeChallenge = JsonHelper.Base64UrlEncode(hashBytes);
             }
 
             return new ESIAuthChallenge()
@@ -239,27 +225,28 @@ namespace EVEAutoInvite
                         {"code_verifier", esiAuthChallenge.CodeVerifier},
                     };
 
-                    FormUrlEncodedContent content = new FormUrlEncodedContent(payload);
-                    HttpResponseMessage authTokenRaw = await WebClient.PostAsync(Constants.EndpointOAuthToken, content, cancellationToken);
-
+                    // Make post request 
+                    HttpResponseMessage authTokenRaw = await WebClient.PostAsync(
+                        Constants.EndpointOAuthToken,
+                        new FormUrlEncodedContent(payload),
+                        cancellationToken);
                     authTokenRaw.EnsureSuccessStatusCode();
-                    using (var stream = await authTokenRaw.Content.ReadAsStreamAsync().WithCancellation(cancellationToken))
-                    {
-                        DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(ESIAuthToken));
-                        esiAuthToken = (ESIAuthToken)serializer.ReadObject(stream);
-                    }
 
+                    // Deserialize the json payload
+                    esiAuthToken = await JsonHelper.Deserialize<ESIAuthToken>(authTokenRaw.Content, cancellationToken);
+
+                    // Make a request to the ESI /verify as an authenticated user
                     var characterInfoRaw = await ESIAuthenticatedRequest(Constants.EndpointOAuthVerify, esiAuthToken, cancellationToken);
-                    using (var stream = await characterInfoRaw.Content.ReadAsStreamAsync().WithCancellation(cancellationToken))
-                    {
-                        DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(ESICharacterInfo));
-                        esiCharacterInfo = (ESICharacterInfo)serializer.ReadObject(stream);
-                    }
+
+                    // Deserialize the json payload
+                    esiCharacterInfo = await JsonHelper.Deserialize<ESICharacterInfo>(characterInfoRaw.Content, cancellationToken);
+
 
                     return new ESIAuthenticatedCharacter()
                     {
                         AuthToken = esiAuthToken,
-                        CharacterInfo = esiCharacterInfo
+                        CharacterInfo = esiCharacterInfo,
+                        Active = false
                     };
                 }
             }

@@ -1,13 +1,29 @@
-﻿using System;
-using System.IO;
+﻿/*
+EVEAutoInvite - A small utility for EVE Online
+Copyright (C) 2024 github.com/0xKate
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+using System;
 using System.Runtime.Serialization;
-using System.Runtime.Serialization.Json;
 
 
 namespace EVEAutoInvite
 {
     [DataContract]
-    public class JsonWebToken
+    public struct JsonWebToken
     {
         [DataMember(Name = "scp")] // ["esi-skills.read_skills.v1", "esi-skills.read_skillqueue.v1"]
         public string[] Scopes { get; set; }
@@ -64,56 +80,19 @@ namespace EVEAutoInvite
         [DataMember(Name = "iss")] // "login.eveonline.com"
         public string Issuer { get; set; }
 
-        // Instance method to serialize to base64url safe encoded string
-        public string Serialize()
-        {
-            using (var ms = new MemoryStream())
-            {
-                var serializer = new DataContractJsonSerializer(typeof(JsonWebToken));
-                serializer.WriteObject(ms, this);
-                var jsonBytes = ms.ToArray();
-                return Convert.ToBase64String(jsonBytes)
-                              .Replace('+', '-')
-                              .Replace('/', '_')
-                              .TrimEnd('='); // Trim padding '=' characters
-            }
-        }
-
-        // Static method to deserialize from base64url safe encoded string
-        public static JsonWebToken Deserialize(string base64UrlSafeString)
-        {
-            // Add padding '=' characters if necessary
-            int paddingNeeded = 4 - (base64UrlSafeString.Length % 4);
-            if (paddingNeeded != 4)
-            {
-                base64UrlSafeString += new string('=', paddingNeeded);
-            }
-
-            // Replace '-' with '+' and '_' with '/' to make it standard base64
-            base64UrlSafeString = base64UrlSafeString.Replace('-', '+').Replace('_', '/');
-
-            byte[] jsonBytes = Convert.FromBase64String(base64UrlSafeString);
-
-            using (var ms = new MemoryStream(jsonBytes))
-            {
-                var serializer = new DataContractJsonSerializer(typeof(JsonWebToken));
-                return (JsonWebToken)serializer.ReadObject(ms);
-            }
-        }
-
         public void Validate()
         {
             // Validate the JWT signature - Not implemented as it requires external library for RS256 validation
 
             // Validate the issuer
-            if (Issuer != Constants.JWKIssuersHost && Issuer != Constants.JWKIssuersURI)
+            if (this.Issuer != Constants.JWKIssuersHost && this.Issuer != Constants.JWKIssuersURI)
             {
                 throw new Exception("Invalid issuer");
             }
 
             // Validate the expiry date
             var currentTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            if (ExpirationDate < currentTimestamp)
+            if (this.ExpirationDate < currentTimestamp)
             {
                 throw new Exception("Token has expired");
             }
