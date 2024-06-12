@@ -110,6 +110,7 @@
     <Compile Include="Model\ESIAuthTokenResponse.cs" />
     <Compile Include="Model\ESICharacterInfo.cs" />
     <Compile Include="Model\EVELogHeader.cs" />
+    <Compile Include="Model\JsonWebToken.cs" />
     <Compile Include="Model\ViewModel.cs" />
     <Compile Include="View\AccountsWindow.xaml.cs">
       <DependentUpon>AccountsWindow.xaml</DependentUpon>

@@ -106,6 +106,15 @@ namespace EVEAutoInvite {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to https://login.eveonline.com/.well-known/oauth-authorization-server.
+        /// </summary>
+        internal static string EndPointOAuthMetaData {
+            get {
+                return ResourceManager.GetString("EndPointOAuthMetaData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to https://login.eveonline.com/v2/oauth/token/.
         /// </summary>
         internal static string EndpointOAuthToken {
@@ -129,6 +138,42 @@ namespace EVEAutoInvite {
         internal static string ESIScopes {
             get {
                 return ResourceManager.GetString("ESIScopes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to RS256.
+        /// </summary>
+        internal static string JWKAlgorithm {
+            get {
+                return ResourceManager.GetString("JWKAlgorithm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to EVE Online.
+        /// </summary>
+        internal static string JWKAudience {
+            get {
+                return ResourceManager.GetString("JWKAudience", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to login.eveonline.com.
+        /// </summary>
+        internal static string JWKIssuersHost {
+            get {
+                return ResourceManager.GetString("JWKIssuersHost", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://login.eveonline.com.
+        /// </summary>
+        internal static string JWKIssuersURI {
+            get {
+                return ResourceManager.GetString("JWKIssuersURI", resourceCulture);
             }
         }
         

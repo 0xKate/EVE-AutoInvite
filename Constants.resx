@@ -132,6 +132,9 @@
   <data name="EndpointOAuthAuthorize" xml:space="preserve">
     <value>https://login.eveonline.com/v2/oauth/authorize/</value>
   </data>
+  <data name="EndPointOAuthMetaData" xml:space="preserve">
+    <value>https://login.eveonline.com/.well-known/oauth-authorization-server</value>
+  </data>
   <data name="EndpointOAuthToken" xml:space="preserve">
     <value>https://login.eveonline.com/v2/oauth/token/</value>
   </data>
@@ -140,6 +143,18 @@
   </data>
   <data name="ESIScopes" xml:space="preserve">
     <value>esi-fleets.read_fleet.v1 esi-fleets.write_fleet.v1</value>
+  </data>
+  <data name="JWKAlgorithm" xml:space="preserve">
+    <value>RS256</value>
+  </data>
+  <data name="JWKAudience" xml:space="preserve">
+    <value>EVE Online</value>
+  </data>
+  <data name="JWKIssuersHost" xml:space="preserve">
+    <value>login.eveonline.com</value>
+  </data>
+  <data name="JWKIssuersURI" xml:space="preserve">
+    <value>https://login.eveonline.com</value>
   </data>
   <data name="UserAgent" xml:space="preserve">
     <value>EVE-AUTOINVITE</value>

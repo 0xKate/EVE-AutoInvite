@@ -18,7 +18,7 @@ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         <DataGrid x:Name="AccountsDataGrid" ItemsSource="{Binding Characters}" AutoGenerateColumns="False" Grid.Row="0" Margin="10">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Character Name" Binding="{Binding CharacterInfo.CharacterName}" />
-                <DataGridTextColumn Header="Token Lifetime" Binding="{Binding AuthToken.ExpiresIn}" />
+                <DataGridTextColumn Header="Token Lifetime" Binding="{Binding AuthToken.ExpirationDate}" />
                 <DataGridTemplateColumn Header="Action">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
