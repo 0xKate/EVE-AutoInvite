@@ -53,6 +53,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: EVE-AutoInvite/EVEAutoInvite/bin/Release/EVEAutoInvite.exe
+          asset_path: D:\a\EVE-AutoInvite\EVE-AutoInvite\bin\Release\EVEAutoInvite.exe
           asset_name: EVEAutoInvite.exe
           asset_content_type: application/octet-stream
