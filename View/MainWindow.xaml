@@ -5,11 +5,43 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EVEAutoInvite"
         mc:Ignorable="d"
-
+        ResizeMode="CanMinimize"
         Title="EVE Auto Invite" Height="256" Width="256">
 
-    <Grid>
+    <Window.DataContext>
+        <local:ViewModel/>
+    </Window.DataContext>
 
+    <Window.Resources>
+        <Style x:Key="SystemButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" />
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.ControlDarkDarkBrushKey}}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="4,2" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.5" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*" />
@@ -39,10 +71,16 @@
             </Grid.ColumnDefinitions>
 
             <TextBlock Grid.Row="0" Grid.Column="0" Text="Character:" FontWeight="Bold" FontSize="10" Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            <ComboBox Grid.Row="0" Grid.Column="1" x:Name="CharSelector" Width="Auto" MinWidth="150" Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center" SelectionChanged="CharSelector_SelectionChanged"/>
+            <ComboBox Grid.Row="0" Grid.Column="1" x:Name="CharSelector" Width="Auto" MinWidth="150" Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center"
+                        SelectionChanged="CharSelector_SelectionChanged"
+                        ItemsSource="{Binding Characters}" 
+                        DisplayMemberPath="CharacterInfo.CharacterName"/>
 
             <TextBlock Grid.Row="1" Grid.Column="0" Text="Chat Channel:" FontWeight="Bold" FontSize="10" Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            <ComboBox Grid.Row="1" Grid.Column="1" x:Name="ChatSelector" Width="Auto" MinWidth="150" Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center" SelectionChanged="ChatSelector_SelectionChanged"/>
+            <ComboBox Grid.Row="1" Grid.Column="1" x:Name="ChatSelector" Width="Auto" MinWidth="150" Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center"
+                      SelectionChanged="ChatSelector_SelectionChanged"
+                      ItemsSource="{Binding CharacterLogs}" 
+                      DisplayMemberPath="ChannelName"/>
 
             <TextBlock Grid.Row="2" Grid.Column="0" Text="Invite Code:" FontWeight="Bold" FontSize="10" Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             <TextBox Grid.Row="2" Grid.Column="1" x:Name="InviteCodeBox" Width="Auto" MinWidth="150" Margin="2,6,2,6" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -70,32 +108,5 @@
     </Grid>
 
 
-<Window.Resources>
-    <Style x:Key="SystemButtonStyle" TargetType="Button">
-        <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" />
-        <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.ControlDarkDarkBrushKey}}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Padding" Value="4,2" />
-        <Setter Property="HorizontalAlignment" Value="Center" />
-        <Setter Property="VerticalAlignment" Value="Center" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Border Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}">
-                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                    </Border>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-        <Style.Triggers>
-            <Trigger Property="IsEnabled" Value="False">
-                <Setter Property="Opacity" Value="0.5" />
-            </Trigger>
-        </Style.Triggers>
-    </Style>
-</Window.Resources>
+
 </Window>

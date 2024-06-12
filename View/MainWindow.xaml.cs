@@ -1,5 +1,7 @@
-﻿using System.Windows;
+﻿using System.Diagnostics;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace EVEAutoInvite
 {
@@ -11,15 +13,72 @@ namespace EVEAutoInvite
         private HelpWindow _helpWindow;
         private AccountsWindow _accountsWindow;
 
-
         public MainWindow()
         {
             InitializeComponent();
+
+            // Disable UI And show wait cursor until loaded
+            Mouse.OverrideCursor = Cursors.Wait;
+            this.IsEnabled = false;
 
             CharSelector.IsEnabled = false;
             ChatSelector.IsEnabled = false;
             StartButton.IsEnabled = false;
             StopButton.IsEnabled = false;
+
+            if (ESIAuthManager.Characters.Count > 0)
+            {
+                foreach (var character in ESIAuthManager.Characters)
+                {
+                    if (character.Active)
+                    {
+                        CharSelector.SelectedItem = character;
+                        break;
+                    }
+                }
+                CharSelector.IsEnabled = true;
+            }
+
+            ESIAuthManager.Characters.CollectionChanged += (sender, args) => 
+            {
+                if (ESIAuthManager.Characters.Count > 0)
+                    CharSelector.IsEnabled = true;
+                else
+                    CharSelector.IsEnabled = false;
+            };
+
+            ESIAuthManager.OnActiveCharacterChanged += (sender, args) => 
+            {
+                if (ESIAuthManager.ActiveCharacter.HasValue)
+                {
+                    if (ViewModel.CharacterLogs.IsEmpty)
+                        ChatSelector.IsEnabled = false;
+                    else
+                        ChatSelector.IsEnabled = true;
+
+                    Mouse.OverrideCursor = null;
+                    CharSelector.IsEnabled = true;
+                }
+            };
+
+            EVELogManager.Logs.CollectionChanged += (sender, args) =>
+            {
+                if (ESIAuthManager.ActiveCharacter.HasValue)
+                {
+                    if (EVELogManager.Logs.Count > 0)
+                        ChatSelector.IsEnabled = true;
+                    else
+                        ChatSelector.IsEnabled = false;
+                }                  
+            };      
+
+            EVELogManager.OnChatLogsRefreshed += (snder, evnt) =>
+            {
+                Mouse.OverrideCursor = null;
+                this.IsEnabled = true;
+            };
+
+
 
             // Generate List for CharSelector
             // -> List
@@ -92,6 +151,13 @@ namespace EVEAutoInvite
 
         private void CharSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            Mouse.OverrideCursor = Cursors.Wait;
+            ChatSelector.IsEnabled = false;
+            CharSelector.IsEnabled = false;
+            ESIAuthenticatedCharacter selectedItem = (ESIAuthenticatedCharacter)CharSelector.SelectedItem;
+            Debug.WriteLine($"Selected Character:  {selectedItem.CharacterInfo.CharacterName}");
+            ESIAuthManager.ActiveCharacter = selectedItem;
+
             // When the character changes, we need to rebuild the Chat list with all logs
             // that have the new character as a listener
             // enable the chat selector if we found any

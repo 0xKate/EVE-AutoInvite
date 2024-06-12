@@ -63,6 +63,12 @@
   <PropertyGroup>
     <ApplicationIcon>EVEAutoInvite.ico</ApplicationIcon>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignManifests>false</SignManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -95,6 +101,7 @@
       <DependentUpon>Constants.resx</DependentUpon>
     </Compile>
     <Compile Include="Controller\ESIAuthManager.cs" />
+    <Compile Include="Controller\EVELogManager.cs" />
     <Compile Include="Controller\WebServer.cs" />
     <Compile Include="Model\ESIAuthenticatedCharacter.cs" />
     <Compile Include="Model\ESIAuthChallenge.cs" />
@@ -102,6 +109,8 @@
     <Compile Include="Model\ESIAuthToken.cs" />
     <Compile Include="Model\ESIAuthTokenResponse.cs" />
     <Compile Include="Model\ESICharacterInfo.cs" />
+    <Compile Include="Model\EVELogHeader.cs" />
+    <Compile Include="Model\ViewModel.cs" />
     <Compile Include="View\AccountsWindow.xaml.cs">
       <DependentUpon>AccountsWindow.xaml</DependentUpon>
     </Compile>

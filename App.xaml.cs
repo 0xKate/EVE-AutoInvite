@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Runtime.Serialization.Json;
-using System.Windows;
+﻿using System.Windows;
 
 namespace EVEAutoInvite
 {
@@ -16,8 +10,11 @@ namespace EVEAutoInvite
         {
             base.OnStartup(e);
 
-            AuthManager = ESIAuthManager.GetAuthManager();
-            AuthManager.LoadCharacters();
+            // Load Authenticated Characters
+            ESIAuthManager.LoadCharacters();
+
+            // Parse all logs and fetch their header.
+            _ = EVELogManager.RefreshLogHeadersAsync();
 
             // Create and show the main window
             MainWindow = new MainWindow();
@@ -26,7 +23,7 @@ namespace EVEAutoInvite
 
         protected override void OnExit(ExitEventArgs e)
         {
-            AuthManager.SaveCharacters();
+            ESIAuthManager.SaveCharacters();
 
             base.OnExit(e);
         }

@@ -23,7 +23,7 @@ namespace EVEAutoInvite
                 if (choice == MessageBoxResult.Cancel)
                 {
                     _cancellationTokenSource.Cancel();
-                    App.AuthManager.SaveCharacters();
+                    ESIAuthManager.SaveCharacters();
                 }
                 else
                 {
@@ -32,7 +32,7 @@ namespace EVEAutoInvite
             }
             else
             {
-                App.AuthManager.SaveCharacters();
+                ESIAuthManager.SaveCharacters();
             }
         }
 
@@ -43,13 +43,13 @@ namespace EVEAutoInvite
             {
                 _processing = true;
                 _cancellationTokenSource = new CancellationTokenSource();
-                ESIAuthenticatedCharacter? character = await App.AuthManager.RequestNewSSOAuth(_cancellationTokenSource.Token);
+                ESIAuthenticatedCharacter? character = await ESIAuthManager.RequestNewSSOAuth(_cancellationTokenSource.Token);
 
                 if (character.HasValue)
                 {
-                    if (!App.AuthManager.UpdateCharacter(character.Value))
+                    if (!ESIAuthManager.UpdateCharacter(character.Value))
                     {
-                        App.AuthManager.Characters.Add(character.Value);
+                        ESIAuthManager.Characters.Add(character.Value);
                     }
                 }
                 _processing = false;
@@ -73,7 +73,7 @@ namespace EVEAutoInvite
             var character = (ESIAuthenticatedCharacter)button.DataContext;
 
             // Now you can remove the character from your data source
-            App.AuthManager.Characters.Remove(character); // Assuming Characters is your ObservableCollection or similar collection
+            ESIAuthManager.Characters.Remove(character); // Assuming Characters is your ObservableCollection or similar collection
         }
 
     }

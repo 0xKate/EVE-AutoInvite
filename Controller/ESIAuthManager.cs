@@ -9,60 +9,45 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Runtime.Serialization.Json;
 using System.Security.Cryptography;
-using System.Security.Permissions;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Windows;
-using System.Windows.Media.TextFormatting;
-using System.Windows.Navigation;
 
 namespace EVEAutoInvite
 {
     public class ESIAuthManager
     {
-        public HttpClient HttpClient { get; set; }
-        public ObservableCollection<ESIAuthenticatedCharacter> Characters { get; private set; }
-        public ESIAuthenticatedCharacter? ActiveCharacter { get; private set; }
-        public static ESIAuthManager Current { get; set; }
-        public static ESIAuthManager GetAuthManager()
+        public static ObservableCollection<ESIAuthenticatedCharacter> Characters { get; private set; }
+        public static event EventHandler<ESIAuthenticatedCharacter?> OnActiveCharacterChanged;
+        private static ESIAuthenticatedCharacter? _activeCharacter;
+        public static ESIAuthenticatedCharacter? ActiveCharacter
         {
-            if (Current == null)
-                Current = new ESIAuthManager();
-            return Current;
-        }
-        public ESIAuthManager()
-        {
-            this.HttpClient = new HttpClient();
-            this.Characters = new ObservableCollection<ESIAuthenticatedCharacter>();
-            this.HttpClient.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.UserAgent);
-        }
-        public void SetAuthToken(ESIAuthToken token)
-        {
-            this.HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
-        }
-        public void SetActiveCharacter(string characterName)
-        {
-            foreach (var character in this.Characters)
+            get => _activeCharacter;
+            set
             {
-                if (character.CharacterInfo.CharacterName == characterName)
-                {
-                    this.ActiveCharacter = character;
-                    break;
-                }
+                _activeCharacter = value;
+                OnActiveCharacterChanged?.Invoke(null, value);
             }
         }
-        public void SetActiveCharacter(ESIAuthenticatedCharacter character)
+        public static HttpClient WebClient { get; private set; }
+        static ESIAuthManager()
         {
-            this.ActiveCharacter = character;
+            Characters = new ObservableCollection<ESIAuthenticatedCharacter>();
+            WebClient = new HttpClient();
+            WebClient.DefaultRequestHeaders.UserAgent.ParseAdd(Constants.UserAgent);
         }
-        public async Task<HttpResponseMessage> ESIAuthenticatedRequest(string url, ESIAuthToken authToken, CancellationToken cancellationToken = default)
+        public static void SetAuthToken(ESIAuthToken token)
+        {
+            WebClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
+        }
+        public static async Task<HttpResponseMessage> ESIAuthenticatedRequest(string url, ESIAuthToken authToken, CancellationToken cancellationToken = default)
         {
             try
             {
-                this.SetAuthToken(authToken);
-                var response = await this.HttpClient.GetAsync(url, cancellationToken);
+                SetAuthToken(authToken);
+                var response = await WebClient.GetAsync(url, cancellationToken);
                 response.EnsureSuccessStatusCode();
                 return response;
             }
@@ -79,7 +64,7 @@ namespace EVEAutoInvite
             }
             return null;
         }
-        public bool LoadCharacters()
+        public static bool LoadCharacters()
         {
             if (File.Exists(Constants.AuthBackupFile))
             {
@@ -88,15 +73,15 @@ namespace EVEAutoInvite
                     using (FileStream fileStream = new FileStream(Constants.AuthBackupFile, FileMode.Open))
                     {
                         DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(ObservableCollection<ESIAuthenticatedCharacter>));
-                        this.Characters = (ObservableCollection<ESIAuthenticatedCharacter>)serializer.ReadObject(fileStream);
+                        Characters = (ObservableCollection<ESIAuthenticatedCharacter>)serializer.ReadObject(fileStream);
 
-                        if (this.ActiveCharacter == null)
+                        if (ActiveCharacter == null)
                         {
-                            foreach (var character in this.Characters)
+                            foreach (var character in Characters)
                             {
                                 if (character.Active)
                                 {
-                                    this.ActiveCharacter = character;
+                                    ActiveCharacter = character;
                                     break;
                                 }
                             }
@@ -111,9 +96,9 @@ namespace EVEAutoInvite
             }
             return false;
         }
-        public void SaveCharacters()
+        public static void SaveCharacters()
         {
-            if (this.Characters.Count > 0)
+            if (Characters.Count > 0)
             {
                 try
                 {
@@ -130,28 +115,28 @@ namespace EVEAutoInvite
                 }
             }
         }
-        public bool TryGetCharacter(string characterName, out ESIAuthenticatedCharacter? character, out int? index)
+        public static bool TryGetCharacter(string characterName, out ESIAuthenticatedCharacter? character, out int? index)
         {
             character = null;
             index = null;
 
-            for (int i = 0; i < this.Characters.Count; i++)
+            for (int i = 0; i < Characters.Count; i++)
             {
-                var c = this.Characters[i];
+                var c = Characters[i];
                 if (c.CharacterInfo.CharacterName == characterName)
                 {
-                    character = this.Characters[i];
+                    character = Characters[i];
                     index = i;
                     return true;
                 }
             }
             return false;
         }
-        public bool UpdateCharacter(ESIAuthenticatedCharacter newCharacter)
+        public static bool UpdateCharacter(ESIAuthenticatedCharacter newCharacter)
         {
-            if (this.TryGetCharacter(newCharacter.CharacterInfo.CharacterName, out ESIAuthenticatedCharacter? _, out int? i))
+            if (TryGetCharacter(newCharacter.CharacterInfo.CharacterName, out ESIAuthenticatedCharacter? _, out int? i))
             {
-                this.Characters[i.Value] = newCharacter;
+                Characters[i.Value] = newCharacter;
                 return true;
             }
             return false;
@@ -196,7 +181,7 @@ namespace EVEAutoInvite
                 RequestState = Guid.NewGuid().ToString()
             };
         }
-        public async Task<ESIAuthenticatedCharacter?> RequestNewSSOAuth(CancellationToken cancellationToken = default)
+        public static async Task<ESIAuthenticatedCharacter?> RequestNewSSOAuth(CancellationToken cancellationToken = default)
         {
             ESIAuthChallenge esiAuthChallenge = GenerateNewAuthChallenge();
             ESICharacterInfo esiCharacterInfo;
@@ -237,7 +222,7 @@ namespace EVEAutoInvite
                     };
 
                     FormUrlEncodedContent content = new FormUrlEncodedContent(payload);
-                    HttpResponseMessage authTokenRaw = await this.HttpClient.PostAsync(Constants.EndpointOAuthToken, content, cancellationToken);
+                    HttpResponseMessage authTokenRaw = await WebClient.PostAsync(Constants.EndpointOAuthToken, content, cancellationToken);
 
                     authTokenRaw.EnsureSuccessStatusCode();
                     using (var stream = await authTokenRaw.Content.ReadAsStreamAsync().WithCancellation(cancellationToken))
@@ -273,6 +258,7 @@ namespace EVEAutoInvite
             }
             return null;
         }
+
     }
     public static class TaskExtensions
     {
@@ -289,5 +275,4 @@ namespace EVEAutoInvite
             return await task;
         }
     }
-
 }
