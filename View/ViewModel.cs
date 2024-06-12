@@ -28,7 +28,7 @@ namespace EVEAutoInvite
         public static ObservableCollection<ESIAuthenticatedCharacter> Characters => ESIAuthManager.Characters;
         public static ObservableCollection<LogHeader> Logs => EVELogManager.Logs;
 
-        private static ICollectionView _filteredLogs;
+        public static ICollectionView CharacterLogs;
 
         static ViewModel()
         {
@@ -36,11 +36,10 @@ namespace EVEAutoInvite
             ESIAuthManager.OnActiveCharacterChanged += OnActiveCharacterChanged;
 
             // Initialize the filtered logs collection view
-            _filteredLogs = CollectionViewSource.GetDefaultView(Logs);
-            _filteredLogs.Filter = FilterLogs;
+            CharacterLogs = CollectionViewSource.GetDefaultView(Logs);
+            CharacterLogs.Filter = FilterLogs;
         }
 
-        public static ICollectionView CharacterLogs => _filteredLogs;
 
         private static async void OnActiveCharacterChanged(object sender, ESIAuthenticatedCharacter? e)
         {
@@ -56,7 +55,7 @@ namespace EVEAutoInvite
             {
                 Debug.WriteLine($"LOG: Listener={log.Listener}, ChannelName={log.ChannelName}");
             }
-            _filteredLogs.Refresh();
+            CharacterLogs.Refresh();
         }
 
         private static bool FilterLogs(object item)

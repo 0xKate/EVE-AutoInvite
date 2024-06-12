@@ -61,7 +61,7 @@
     <NoWin32Manifest>true</NoWin32Manifest>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>EVEAutoInvite.ico</ApplicationIcon>
+    <ApplicationIcon>Properties\EVEAutoInvite.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
     <SignManifests>false</SignManifests>
@@ -91,11 +91,11 @@
     <Reference Include="PresentationFramework" />
   </ItemGroup>
   <ItemGroup>
-    <ApplicationDefinition Include="App.xaml">
+    <ApplicationDefinition Include="Controller\App.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Constants.Designer.cs">
+    <Compile Include="Properties\Constants.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Constants.resx</DependentUpon>
@@ -111,9 +111,9 @@
     <Compile Include="Model\ESIAuthTokenResponse.cs" />
     <Compile Include="Model\ESICharacterInfo.cs" />
     <Compile Include="Model\EVELogHeader.cs" />
-    <Compile Include="Model\JsonWebKeySet.cs" />
-    <Compile Include="Model\JsonWebToken.cs" />
-    <Compile Include="Model\ViewModel.cs" />
+    <Compile Include="Model\ESIJwks.cs" />
+    <Compile Include="Model\ESIJwt.cs" />
+    <Compile Include="View\ViewModel.cs" />
     <Compile Include="View\AccountsWindow.xaml.cs">
       <DependentUpon>AccountsWindow.xaml</DependentUpon>
     </Compile>
@@ -128,7 +128,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="App.xaml.cs">
+    <Compile Include="Controller\App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
@@ -145,32 +145,14 @@
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-    </Compile>
-    <EmbeddedResource Include="Constants.resx">
+    <EmbeddedResource Include="Properties\Constants.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Constants.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-    </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="Controller\App.config" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.7.2">
@@ -185,7 +167,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="EVEAutoInvite.ico" />
+    <Resource Include="Properties\EVEAutoInvite.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

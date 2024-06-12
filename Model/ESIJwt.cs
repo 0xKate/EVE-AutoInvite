@@ -16,14 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+using EVEAutoInvite.Properties;
 using System;
 using System.Runtime.Serialization;
-
 
 namespace EVEAutoInvite
 {
     [DataContract]
-    public struct JsonWebToken
+    public struct ESIJwt
     {
         [DataMember(Name = "scp")] // ["esi-skills.read_skills.v1", "esi-skills.read_skillqueue.v1"]
         public string[] Scopes { get; set; }

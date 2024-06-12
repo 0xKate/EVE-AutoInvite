@@ -21,7 +21,7 @@ namespace EVEAutoInvite
 {
 
     [DataContract]
-    public struct JsonWebKeySet
+    public struct ESIJwks
     {
         [DataMember(Name = "keys")]
         public JsonWebKey[] Keys { get; set; }

@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace EVEAutoInvite {
+namespace EVEAutoInvite.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace EVEAutoInvite {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("EVEAutoInvite.Constants", typeof(Constants).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("EVEAutoInvite.Properties.Constants", typeof(Constants).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

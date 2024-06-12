@@ -24,8 +24,11 @@ namespace EVEAutoInvite
     [DataContract]
     public struct ESIAuthToken
     {
+        /// <summary>
+        /// String representation of ESIJwt
+        /// </summary>
         [DataMember(Name = "access_token")]
-        public string AccessToken { get; set; }
+        public string AccessToken { get; set; } 
 
         [DataMember(Name = "expires_in")]
         public int ExpiresIn { get; set; }
@@ -39,15 +42,5 @@ namespace EVEAutoInvite
         [DataMember(Name = "expiration_date")]
         public DateTime ExpirationDate { get; set; }
 
-        public bool Validate()
-        {
-            if (ExpiresIn <= 0)
-                return false;
-
-            if (ExpirationDate < DateTime.Now)
-                return false;
-
-            return true;
-        }
     }
 }
